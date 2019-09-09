@@ -21,7 +21,7 @@ import { mapState } from 'vuex'
 
 import RequestList from '@/components/request/RequestList'
 
-import actions from '@/store/action-types'
+import { Actions } from '@/store'
 
 export default {
   name: 'active-requests',
@@ -46,7 +46,7 @@ export default {
     async ensureJournal () {
       if (!Array.isArray(this.journal)) {
         this.loaded = false
-        await this.$store.dispatch(actions.LOAD_JOURNAL, this.progress)
+        await this.$store.dispatch(Actions.LoadJournal, this.progress)
       }
       this.requests = this.journal
         .sort((a, b) => a.showAfter - b.showAfter)

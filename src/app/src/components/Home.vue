@@ -12,11 +12,3 @@ md-content(role='main').mpj-main-content
     above, and log on with either a Microsoft or Google account. You can also learn more about the site at the
     &ldquo;Docs&rdquo; link, also above.
 </template>
-
-<script>
-'use strict'
-
-export default {
-  name: 'home'
-}
-</script>

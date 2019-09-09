@@ -15,7 +15,7 @@ md-dialog(:md-active.sync='snoozeVisible').mpj-skinny
 <script>
 'use strict'
 
-import actions from '@/store/action-types'
+import { Actions } from '@/store'
 
 export default {
   name: 'snooze-request',
@@ -56,7 +56,7 @@ export default {
       this.snoozeVisible = true
     },
     async snoozeRequest () {
-      await this.$store.dispatch(actions.SNOOZE_REQUEST, {
+      await this.$store.dispatch(Actions.SnoozeRequest, {
         progress: this.progress,
         requestId: this.form.requestId,
         until: Date.parse(this.form.snoozedUntil)

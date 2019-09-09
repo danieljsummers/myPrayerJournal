@@ -3,7 +3,7 @@
 import authService from '../auth/AuthService'
 
 export default {
-  install (Vue) {
+  install (Vue: any) {
     Vue.prototype.$auth = authService
 
     Vue.mixin({

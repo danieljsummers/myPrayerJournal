@@ -28,78 +28,125 @@
             #[a(href='https://bitbadger.solutions' target='_blank') Bit Badger Solutions]
 </template>
 
-<script>
+<script lang="ts">
 'use strict'
 
 import Vue from 'vue'
+import { Component } from 'vue-property-decorator'
 
-import Navigation from '@/components/common/Navigation'
+import Navigation from '@/components/common/Navigation.vue'
 
-import actions from '@/store/action-types'
+import { Actions } from './store'
 import { version } from '../package.json'
 
-export default {
-  name: 'app',
-  components: {
-    Navigation
-  },
-  data () {
-    return {
-      progress: {
-        events: new Vue(),
-        visible: false,
-        mode: 'query'
-      },
-      snackbar: {
-        events: new Vue(),
-        visible: false,
-        message: '',
-        interval: 4000
-      }
-    }
-  },
+interface ProgressOptions {
+  /** A Vue instance to use as an event bus */
+  events: Vue
+  /** Whether the progress bar is visible */
+  visible: boolean
+  /** The mode for the progress bar */
+  mode: string
+}
+
+interface SnackbarOptions {
+  /** A Vue instance to use as an event bus */
+  events: Vue
+  /** Whether the snackbar is visible */
+  visible: boolean
+  /** The message to display in the snackbar */
+  message: string
+  /** The duration for which the snackbar will be visible */
+  interval: number
+}
+
+@Component({ components: { Navigation } })
+export default class App extends Vue {
+  
+  /** Properties to support the global progress bar */
+  progress: ProgressOptions = {
+    events: new Vue(),
+    visible: false,
+    mode: 'query'
+  }
+  
+  /** Properties to support the global snackbar */
+  snackbar: SnackbarOptions = {
+    events: new Vue(),
+    visible: false,
+    message: '',
+    interval: 4000
+  }
+
+  /** Register event listeners */
   async mounted () {
     this.progress.events.$on('show', this.showProgress)
     this.progress.events.$on('done', this.hideProgress)
     this.snackbar.events.$on('info', this.showInfo)
     this.snackbar.events.$on('error', this.showError)
-    await this.$store.dispatch(actions.CHECK_AUTHENTICATION)
-  },
-  computed: {
-    version () {
-      return version.endsWith('.0')
-        ? version.endsWith('.0.0')
-          ? version.substr(0, version.length - 4)
-          : version.substr(0, version.length - 2)
-        : version
+    await this.$store.dispatch(Actions.CheckAuthentication)
+  }
+
+  /** myPrayerJournal version string */
+  get version () {
+    return version.endsWith('.0')
+      ? version.endsWith('.0.0')
+        ? version.substr(0, version.length - 4)
+        : version.substr(0, version.length - 2)
+      : version
+  }
+
+  /**
+   * Show the snackbar
+   * @param message The message to be displayed
+   */
+  showSnackbar (message: string) {
+    this.snackbar.message = message
+    this.snackbar.visible = true
+  }
+
+  /**
+   * Show an informational message in the snackbar
+   * @param message The message to be displayed
+   */
+  showInfo (message: string) {
+    this.snackbar.interval = 4000
+    this.showSnackbar(message)
+  }
+
+  /**
+   * Show an error message in the snackbar
+   * @param message The message to be displayec
+   */
+  showError (message: string) {
+    this.snackbar.interval = Infinity
+    this.showSnackbar(message)
+  }
+
+  /**
+   * Show the progress bar
+   * @param mode The mode of progress bar to display
+   */
+  showProgress (mode: string) {
+    this.progress.mode = mode
+    this.progress.visible = true
+  }
+
+  /**
+   * Hide the progress bar
+   */
+  hideProgress () {
+    this.progress.visible = false
+  }
+
+  /**
+   * Event listener to display a message when the user logs off
+   */
+  handleLoginEvent (data) {
+    if (!data.loggedIn) {
+      this.showInfo('Logged out successfully')
     }
-  },
-  methods: {
-    showSnackbar (message) {
-      this.snackbar.message = message
-      this.snackbar.visible = true
-    },
-    showInfo (message) {
-      this.snackbar.interval = 4000
-      this.showSnackbar(message)
-    },
-    showError (message) {
-      this.snackbar.interval = Infinity
-      this.showSnackbar(message)
-    },
-    showProgress (mode) {
-      this.progress.mode = mode
-      this.progress.visible = true
-    },
-    hideProgress () {
-      this.progress.visible = false
-    },
-    handleLoginEvent (data) {
-      if (!data.loggedIn) {
-        this.showInfo('Logged out successfully')
-      }
-    }
-  },
+  }
+
   provide () {
     return {
       messages: this.snackbar.events,

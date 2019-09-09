@@ -54,7 +54,7 @@ md-content(role='main').mpj-narrow
 
 import { mapState } from 'vuex'
 
-import actions from '@/store/action-types'
+import { Actions } from '@/store'
 
 export default {
   name: 'edit-request',
@@ -114,7 +114,7 @@ export default {
       this.title = 'Edit Prayer Request'
       this.isNew = false
       if (this.journal.length === 0) {
-        await this.$store.dispatch(actions.LOAD_JOURNAL, this.progress)
+        await this.$store.dispatch(Actions.LoadJournal, this.progress)
       }
       const req = this.journal.filter(r => r.requestId === this.id)[0]
       this.form.requestId = this.id
@@ -145,7 +145,7 @@ export default {
     },
     async saveRequest () {
       if (this.isNew) {
-        await this.$store.dispatch(actions.ADD_REQUEST, {
+        await this.$store.dispatch(Actions.AddRequest, {
           progress: this.progress,
           requestText: this.form.requestText,
           recurType: this.form.recur.typ === 'Immediate' ? 'Immediate' : this.form.recur.other,
@@ -153,7 +153,7 @@ export default {
         })
         this.messages.$emit('info', 'New prayer request added')
       } else {
-        await this.$store.dispatch(actions.UPDATE_REQUEST, {
+        await this.$store.dispatch(Actions.UpdateRequest, {
           progress: this.progress,
           requestId: this.form.requestId,
           updateText: this.form.requestText,

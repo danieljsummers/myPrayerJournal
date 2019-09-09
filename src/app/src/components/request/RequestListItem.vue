@@ -31,7 +31,7 @@ md-table-row
 <script>
 'use strict'
 
-import actions from '@/store/action-types'
+import { Actions } from '@/store'
 
 export default {
   name: 'request-list-item',
@@ -61,7 +61,7 @@ export default {
   },
   methods: {
     async cancelSnooze () {
-      await this.$store.dispatch(actions.SNOOZE_REQUEST, {
+      await this.$store.dispatch(Actions.SnoozeRequest, {
         progress: this.progress,
         requestId: this.request.requestId,
         until: 0
@@ -73,7 +73,7 @@ export default {
       this.$router.push({ name: 'EditRequest', params: { id: this.request.requestId } })
     },
     async showNow () {
-      await this.$store.dispatch(actions.SHOW_REQUEST_NOW, {
+      await this.$store.dispatch(Actions.ShowRequestNow, {
         progress: this.progress,
         requestId: this.request.requestId,
         showAfter: 0

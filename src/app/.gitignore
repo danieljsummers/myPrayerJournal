@@ -21,4 +21,4 @@ yarn-error.log*
 *.sw*
 
 # Auth0 settings
-src/auth/auth0-variables.js
+src/auth/auth0-variables.ts

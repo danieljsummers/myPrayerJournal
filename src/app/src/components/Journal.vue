@@ -31,7 +31,7 @@ import NotesEdit from './request/NotesEdit'
 import RequestCard from './request/RequestCard'
 import SnoozeRequest from './request/SnoozeRequest'
 
-import actions from '@/store/action-types'
+import { Actions } from '@/store'
 
 export default {
   name: 'journal',
@@ -59,7 +59,7 @@ export default {
     ...mapState(['user', 'journal', 'isLoadingJournal'])
   },
   async created () {
-    await this.$store.dispatch(actions.LOAD_JOURNAL, this.progress)
+    await this.$store.dispatch(Actions.LoadJournal, this.progress)
     this.messages.$emit('info', `Loaded ${this.journal.length} prayer requests`)
   },
   provide () {

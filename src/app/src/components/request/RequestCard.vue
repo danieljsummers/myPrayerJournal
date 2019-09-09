@@ -27,7 +27,7 @@ md-card(v-if='shouldDisplay'
 <script>
 'use strict'
 
-import actions from '@/store/action-types'
+import { Actions } from '@/store'
 
 export default {
   name: 'request-card',
@@ -47,7 +47,7 @@ export default {
   },
   methods: {
     async markPrayed () {
-      await this.$store.dispatch(actions.UPDATE_REQUEST, {
+      await this.$store.dispatch(Actions.UpdateRequest, {
         progress: this.progress,
         requestId: this.request.requestId,
         status: 'Prayed',

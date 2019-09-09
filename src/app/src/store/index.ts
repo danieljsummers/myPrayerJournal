@@ -7,14 +7,13 @@ import Vuex from 'vuex'
 import api  from '@/api'
 import auth from '@/auth/AuthService'
 
-import mutations from './mutation-types'
-import actions   from './action-types'
+import { Actions, AppState, JournalRequest, Mutations } from './Types'
 /* eslint-enable no-multi-spaces */
 
 Vue.use(Vuex)
 
 /* eslint-disable no-console */
-const logError = function (error) {
+const logError = function (error: any) {
   if (error.response) {
     // The request was made and the server responded with a status code
     // that falls out of the range of 2xx
@@ -50,79 +49,82 @@ const setBearer = async function () {
 }
 /* eslint-enable no-console */
 
+/** The initial state of the store */
+let state : AppState = {
+  user: auth.session.profile,
+  isAuthenticated: auth.isAuthenticated(),
+  journal: [],
+  isLoadingJournal: false
+}
+
 export default new Vuex.Store({
-  state: {
-    user: auth.session.profile,
-    isAuthenticated: auth.isAuthenticated(),
-    journal: {},
-    isLoadingJournal: false
-  },
+  state,
   mutations: {
-    [mutations.LOADING_JOURNAL] (state, flag) {
+    [Mutations.LoadingJournal] (state, flag: boolean) {
       state.isLoadingJournal = flag
     },
-    [mutations.LOADED_JOURNAL] (state, journal) {
+    [Mutations.LoadedJournal] (state, journal: JournalRequest[]) {
       state.journal = journal
     },
-    [mutations.REQUEST_ADDED] (state, newRequest) {
+    [Mutations.RequestAdded] (state, newRequest: JournalRequest) {
       state.journal.push(newRequest)
     },
-    [mutations.REQUEST_UPDATED] (state, request) {
+    [Mutations.RequestUpdated] (state, request: JournalRequest) {
       let jrnl = state.journal.filter(it => it.requestId !== request.requestId)
       if (request.lastStatus !== 'Answered') jrnl.push(request)
       state.journal = jrnl
     },
-    [mutations.SET_AUTHENTICATION] (state, value) {
+    [Mutations.SetAuthentication] (state, value: boolean) {
       state.isAuthenticated = value
     },
-    [mutations.USER_LOGGED_OFF] (state) {
+    [Mutations.UserLoggedOff] (state) {
       state.user = {}
       api.removeBearer()
       state.isAuthenticated = false
     },
-    [mutations.USER_LOGGED_ON] (state, user) {
+    [Mutations.UserLoggedOn] (state, user: any) {
       state.user = user
       state.isAuthenticated = true
     }
   },
   actions: {
-    async [actions.ADD_REQUEST] ({ commit }, { progress, requestText, recurType, recurCount }) {
+    async [Actions.AddRequest] ({ commit }, { progress, requestText, recurType, recurCount }) {
       progress.$emit('show', 'indeterminate')
       try {
         await setBearer()
         const newRequest = await api.addRequest(requestText, recurType, recurCount)
-        commit(mutations.REQUEST_ADDED, newRequest.data)
+        commit(Mutations.RequestAdded, newRequest.data)
         progress.$emit('done')
       } catch (err) {
         logError(err)
         progress.$emit('done')
       }
     },
-    async [actions.CHECK_AUTHENTICATION] ({ commit }) {
+    async [Actions.CheckAuthentication] ({ commit }) {
       try {
         await auth.getAccessToken()
-        commit(mutations.SET_AUTHENTICATION, auth.isAuthenticated())
+        commit(Mutations.SetAuthentication, auth.isAuthenticated())
       } catch (_) {
-        commit(mutations.SET_AUTHENTICATION, false)
+        commit(Mutations.SetAuthentication, false)
       }
     },
-    async [actions.LOAD_JOURNAL] ({ commit }, progress) {
-      commit(mutations.LOADED_JOURNAL, {})
+    async [Actions.LoadJournal] ({ commit }, progress) {
+      commit(Mutations.LoadedJournal, [])
       progress.$emit('show', 'query')
-      commit(mutations.LOADING_JOURNAL, true)
+      commit(Mutations.LoadingJournal, true)
       await setBearer()
       try {
         const jrnl = await api.journal()
-        commit(mutations.LOADED_JOURNAL, jrnl.data)
+        commit(Mutations.LoadedJournal, jrnl.data)
         progress.$emit('done')
       } catch (err) {
         logError(err)
         progress.$emit('done')
       } finally {
-        commit(mutations.LOADING_JOURNAL, false)
+        commit(Mutations.LoadingJournal, false)
       }
     },
-    async [actions.UPDATE_REQUEST] ({ commit, state }, { progress, requestId, status, updateText, recurType, recurCount }) {
+    async [Actions.UpdateRequest] ({ commit, state }, { progress, requestId, status, updateText, recurType, recurCount }) {
       progress.$emit('show', 'indeterminate')
       try {
         await setBearer()
@@ -136,33 +138,33 @@ export default new Vuex.Store({
           await api.updateRequest(requestId, status, oldReq.text !== updateText ? updateText : '')
         }
         const request = await api.getRequest(requestId)
-        commit(mutations.REQUEST_UPDATED, request.data)
+        commit(Mutations.RequestUpdated, request.data)
         progress.$emit('done')
       } catch (err) {
         logError(err)
         progress.$emit('done')
       }
     },
-    async [actions.SHOW_REQUEST_NOW] ({ commit }, { progress, requestId, showAfter }) {
+    async [Actions.ShowRequestNow] ({ commit }, { progress, requestId, showAfter }) {
       progress.$emit('show', 'indeterminate')
       try {
         await setBearer()
         await api.showRequest(requestId, showAfter)
         const request = await api.getRequest(requestId)
-        commit(mutations.REQUEST_UPDATED, request.data)
+        commit(Mutations.RequestUpdated, request.data)
         progress.$emit('done')
       } catch (err) {
         logError(err)
         progress.$emit('done')
       }
     },
-    async [actions.SNOOZE_REQUEST] ({ commit }, { progress, requestId, until }) {
+    async [Actions.SnoozeRequest] ({ commit }, { progress, requestId, until }) {
       progress.$emit('show', 'indeterminate')
       try {
         await setBearer()
         await api.snoozeRequest(requestId, until)
         const request = await api.getRequest(requestId)
-        commit(mutations.REQUEST_UPDATED, request.data)
+        commit(Mutations.RequestUpdated, request.data)
         progress.$emit('done')
       } catch (err) {
         logError(err)
@@ -173,3 +175,5 @@ export default new Vuex.Store({
   getters: {},
   modules: {}
 })
+
+export * from './Types'
